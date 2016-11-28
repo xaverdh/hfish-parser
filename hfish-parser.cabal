@@ -1,0 +1,47 @@
+name:                hfish-parser
+version:             0.1.0.0
+synopsis:            a parser for the hfish language, similar to fish but with less rough edges
+-- description:         
+license:             MIT
+license-file:        LICENSE
+-- author:              
+-- maintainer:          
+category:            Language
+build-type:          Simple
+extra-source-files:  ChangeLog.md
+cabal-version:       >=1.10
+
+flag Trifecta
+  Description: Enable Trifecta support
+  Default:     True
+
+flag Parsec
+  Description: Enable Parsec support
+  Default:     False
+
+flag Attoparsec
+  Description: Enable Attoparsec support
+  Default:     False
+
+flag ReadP
+  Description: Enable ReadP support
+  Default:     False
+
+library
+  exposed-modules:     HFish.Lang.Lang, HFish.UnParser.Quote HFish.UnParser.UnParser HFish.Parser.Redirect, HFish.Parser.Common, HFish.Parser.Glob, HFish.Parser.Parser, HFish.Parser.Gen
+  -- other-modules:       
+  -- other-extensions:    many ... todo: fill this in
+  build-depends:       base >=4.9 && <4.10, mtl >=2.2.1 && <2.3, parsers >= 0.12.4 && < 0.13, text >= 1.2.2 && < 1.3, charset >= 0.3.7 && < 0.4, lens >= 4.15.1 && < 4.16
+  if flag(trifecta)
+    exposed-modules: HFish.Parser.Trifecta
+    build-depends: trifecta >= 1.6 && < 1.7
+  if flag(parsec)
+    exposed-modules: HFish.Parser.Parsec
+    build-depends: parsec >=3.1 && <3.2
+  if flag(attoparsec)
+    exposed-modules: HFish.Parser.Attoparsec
+    build-depends: attoparsec >= 0.13.1 && < 0.14
+  if flag(readp)
+    exposed-modules: HFish.Parser.ReadP
+  default-language:    Haskell2010
+  
