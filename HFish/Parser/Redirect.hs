@@ -11,13 +11,13 @@ import Data.Maybe
 import Control.Applicative
 import Control.Monad
 
-redirect :: PC m => P m (Expr t) -> P m (Redirect t)
+redirect :: P m => m (Expr t) -> m (Redirect t)
 redirect exp = do
   (fd,tk) <- redirectL
   redirectR exp fd tk
   <?> "redirection"
 
-redirectL :: PC m => P m (Fd,RedirTk)
+redirectL :: P m => m (Fd,RedirTk)
 redirectL = try $ do
   mfd <- optional parseFd
   tk <- redirTk
@@ -26,8 +26,8 @@ redirectL = try $ do
     TkOut _ -> return $ fromMaybe Fd1 mfd
     TkErr _ -> maybe (return Fd2) (const mzero) mfd
 
-redirectR :: PC m
-  => P m (Expr t) -> Fd -> RedirTk -> P m (Redirect t)
+redirectR :: P m
+  => m (Expr t) -> Fd -> RedirTk -> m (Redirect t)
 redirectR exp fd tk = 
   parseEither fdR (spaces *> exp) >>= \case
     Left mfdr -> case mfdr of
@@ -44,10 +44,10 @@ redirectR exp fd tk =
     rOut = return . RedirectOut fd
     rClose = return $ RedirectClose fd
   
-parseFd :: PC m => P m Fd
+parseFd :: P m => m Fd
 parseFd = (toEnum . read . pure) <$> digit
 
-fdR :: PC m => P m (Maybe Fd)
+fdR :: P m => m (Maybe Fd)
 fdR = lexeme $ char '&' *>
   ( ( Just <$> parseFd )
     <|> ( char '-' $> Nothing ) )
@@ -56,7 +56,7 @@ data RedirTk =
   TkIn | TkOut FileMode | TkErr FileMode
   deriving (Eq,Ord,Show)
 
-redirTk :: PC m => P m RedirTk
+redirTk :: P m => m RedirTk
 redirTk = choice
   [ char '<' $> TkIn
     ,char '>' *>

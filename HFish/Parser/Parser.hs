@@ -21,27 +21,27 @@ import Control.Monad
 import Control.Monad.Reader
 import Control.Lens hiding (Context,noneOf)
 
-program :: PC m => m (Prog ())
-program = runp prog
+program :: P m => m (Prog ())
+program = prog <* eof
 
-prog :: PC m => P m (Prog ())
+prog :: P m => m (Prog ())
 prog = stmtSep *>
   ( Prog ()
     <$> (compStmt `sepEndBy` stmtSep1) )
   <?> "code-block"
 
-progN :: PC m => P m (Prog ())
+progN :: P m => m (Prog ())
 progN = stmtSep1 *>
   ( Prog ()
     <$> (compStmt `sepEndBy` stmtSep1) )
   <?> "code-block"
 
-args :: PC m => P m (Args ())
+args :: P m => m (Args ())
 args = Args ()
   <$> (expr `sepEndBy` spaces1)
   <?> "expressions"
 
-compStmt :: PC m => P m (CompStmt ())
+compStmt :: P m => m (CompStmt ())
 compStmt = do
   st <- stmt
   option (Simple () st)
@@ -61,7 +61,7 @@ compStmt = do
       $> Forked () st
       <?> "fork-symbol"
 
-stmt :: PC m => P m (Stmt ())
+stmt :: P m => m (Stmt ())
 stmt = do
   st <- plain
   option st $ try (RedirectedSt () st <$> redirects)
@@ -87,25 +87,25 @@ stmt = do
         ,cmdSt
       ]
 
-commentSt :: PC m => P m (Stmt ())
+commentSt :: P m => m (Stmt ())
 commentSt = (CommentSt () . pack)
   <$> (char '#' *> many (notChar '\n'))
   <?> "comment-statement"
 
-cmdSt :: PC m => P m (Stmt ())
+cmdSt :: P m => m (Stmt ())
 cmdSt = CmdSt ()
   <$> lexemeN cmdIdent
   <*> args
   <?> "command-statement"
 
-setSt :: PC m => P m (Stmt ())
+setSt :: P m => m (Stmt ())
 setSt = symN "set" *>
   ( SetSt ()
     <$> optional
     ( (,) <$> lexemeN varDef <*> args ) )
   <?> "variable-definition"
 
-funSt :: PC m => P m (Stmt ())
+funSt :: P m => m (Stmt ())
 funSt = sym1 "function" *> (
     FunctionSt ()
     <$> lexemeN funIdent
@@ -114,14 +114,14 @@ funSt = sym1 "function" *> (
   ) <* symN "end"
   <?> "function-statement"
 
-whileSt :: PC m => P m (Stmt ())
+whileSt :: P m => m (Stmt ())
 whileSt = sym1 "while" *>
   (WhileSt ()
     <$> stmt
     <*> progN <* symN "end")
   <?> "while-statement"
 
-forSt :: PC m => P m (Stmt ())
+forSt :: P m => m (Stmt ())
 forSt = sym1 "for" *>
   ( ForSt ()
     <$> (lexeme1 varIdent <* sym1 "in")
@@ -129,7 +129,7 @@ forSt = sym1 "for" *>
     <*> progN ) <* symN "end"
   <?> "for-statement"
 
-ifSt :: PC m => P m (Stmt ())
+ifSt :: P m => m (Stmt ())
 ifSt =
   ( IfSt () . N.fromList
     <$> ( (:) <$> ifblock <*> many elif )
@@ -143,7 +143,7 @@ ifSt =
       *> ((,) <$> stmt <*> progN)
     el = symN "else" *> progN
 
-switchSt :: PC m => P m (Stmt ())
+switchSt :: P m => m (Stmt ())
 switchSt = sym1 "switch" *>
   ( SwitchSt ()
     <$> lexemeN expr
@@ -155,50 +155,49 @@ switchSt = sym1 "switch" *>
     switchCase = sym1 "case" *>
       ( (,) <$> lexemeN expr <*> progN )
 
-beginSt :: PC m => P m (Stmt ())
+beginSt :: P m => m (Stmt ())
 beginSt = symN "begin"
   *> ( BeginSt () <$> progN )
   <* symN "end"
 
 
-andSt :: PC m => P m (Stmt ())
+andSt :: P m => m (Stmt ())
 andSt = sym1 "and"
   *> (AndSt () <$> stmt)
   <?> "and-statement"
 
-orSt :: PC m => P m (Stmt ())
+orSt :: P m => m (Stmt ())
 orSt = sym1 "or"
   *> (OrSt () <$> stmt)
   <?> "or-statement"
 
-notSt :: PC m => P m (Stmt ())
+notSt :: P m => m (Stmt ())
 notSt = sym1 "not"
   *> (NotSt () <$> stmt)
   <?> "not-statement"
 
-expr :: PC m => P m (Expr ())
+expr :: P m => m (Expr ())
 expr = do
   s <- exprSimple
   option s (ConcatE () s <$> expr)
   <?> "expression"
   where
-    exprSimple = strlike
-      <|> resetContext array
-        ( choice [
-            varRefE
-            ,cmdSubstE
-            ,bracesE
-            ,globE
-            ,homeDirE
-            ,procE ] )
+    exprSimple = choice
+      [ strlike
+        ,varRefE
+        ,cmdSubstE
+        ,bracesE
+        ,globE
+        ,homeDirE
+        ,procE ]
 
-varRefE :: PC m => P m (Expr ())
+varRefE :: P m => m (Expr ())
 varRefE =
   ( VarRefE () False <$> varRef False )
   <|> ( VarRefE () True <$> varRef True )
   <?> "variable-reference"
 
-bracesE :: PC m => P m (Expr ())
+bracesE :: P m => m (Expr ())
 bracesE = BracesE () <$> (
     start *> body <* end
   ) <?> "braces-substitution"
@@ -207,29 +206,29 @@ bracesE = BracesE () <$> (
     end = char '}' <?> "end of braces-substitution"
     body = expr `sepBy` char ','
 
-cmdSubstE :: PC m => P m (Expr ())
+cmdSubstE :: P m => m (Expr ())
 cmdSubstE = CmdSubstE ()
   <$> cmdRef
   <?> "command-substitution"
 
-globE :: PC m => P m (Expr ())
+globE :: P m => m (Expr ())
 globE = GlobE ()
   <$> glob
   <?> "glob-pattern"
 
-procE :: PC m => P m (Expr ())
+procE :: P m => m (Expr ())
 procE = ProcE ()
   <$> (char '%' *> expr)
   <?> "process-expansion"
 
-homeDirE :: PC m => P m (Expr ())
+homeDirE :: P m => m (Expr ())
 homeDirE = char '~' $> HomeDirE () <?> "~"
 
-redirect :: PC m => P m (Redirect ())
+redirect :: P m => m (Redirect ())
 redirect = Redirect.redirect (lexemeN expr)
 
-ref :: PC m => P m i -> P m (Ref i)
-ref q = withContext array $
+ref :: P m => m i -> m (Ref i)
+ref q =
   optional (start *> body <* end)
   <?> "array-reference"
   where
@@ -238,9 +237,9 @@ ref q = withContext array $
     body = range `sepEndBy` spaces1
     range = do
       i <- q
-      option (Index i) ( Range i <$> (sym ".." *> q) )
+      option (Index i) ( Range i <$> (sym "..." *> q) )
 
-cmdRef :: PC m => P m (CmdRef ())
+cmdRef :: P m => m (CmdRef ())
 cmdRef = 
   CmdRef ()
   <$> body
@@ -250,7 +249,7 @@ cmdRef =
     start = sym "(" <?> "command-substitution"
     end = char ')' <?> "end of command-substitution"
 
-varRef :: PC m => Bool -> P m (VarRef ())
+varRef :: P m => Bool -> m (VarRef ())
 varRef q = VarRef ()
   <$> name
   <*> ref expr
@@ -259,7 +258,7 @@ varRef q = VarRef ()
     name = char (if q then '&' else '$') *> 
       parseEither (varRef q) varIdent
 
-varDef :: PC m => P m (VarDef ())
+varDef :: P m => m (VarDef ())
 varDef = VarDef ()
   <$> name
   <*> ref expr
@@ -267,14 +266,14 @@ varDef = VarDef ()
   where
     name = varIdent
 
-strlike :: PC m => P m (Expr ())
+strlike :: P m => m (Expr ())
 strlike = 
   strSQ
   <|> strDQ
   <|> strNQ
   <?> "string"
 
-strSQ :: PC m => P m (Expr ())
+strSQ :: P m => m (Expr ())
 strSQ = (StringE () . pack)
   <$> ( start *>
         strGen allowed escPass escSwallow escIgnore allowEmpty
@@ -288,7 +287,7 @@ strSQ = (StringE () . pack)
     escIgnore = noneOf' "'\\"
     allowEmpty = True
 
-strDQ :: PC m => P m (Expr ())
+strDQ :: P m => m (Expr ())
 strDQ = (StringE () . pack)
   <$> ( start *>
         strGen allowed escPass escSwallow escIgnore allowEmpty  
@@ -302,17 +301,17 @@ strDQ = (StringE () . pack)
     escIgnore = noneOf' "\n\"\\"
     allowEmpty = False
 
-strNQ :: PC m => P m (Expr ())
+strNQ :: P m => m (Expr ())
 strNQ = do
-  ar <- view array
   (StringE () . pack)
-    <$> strGen (allowed ar) escPass escSwallow escIgnore allowEmpty
+  <$> strGen allowed escPass escSwallow escIgnore allowEmpty
   where
-    invalid ar = 
-      "\n\t $&\\*?~%#(){}[]<>^;,\"\'|012" <> bool "" "." ar
-    allowed ar =
-      noneOf' (invalid ar)
+    invalid = 
+      "\n\t $&\\*?~%#(){}[]<>^;,\"\'|012."
+    allowed =
+      noneOf' invalid
       <|> try ( oneOf' "012" <* notFollowedBy (oneOf' "><") )
+      <|> try ( char '.' <* notFollowedBy (string "..") )
     escPass =
       (escapeSequence <$> oneOf' "ntfrvabe")
       <|> try (char 'c' *> anyChar >>= controlSequence)
@@ -347,17 +346,17 @@ strNQ = do
             then return (C.chr i)
             else mzero
 
-varIdent :: PC m => P m (VarIdent ())
+varIdent :: P m => m (VarIdent ())
 varIdent = (VarIdent () . pack)
   <$> ((:) <$> letter <*> many (alphaNum <|> char '_'))
   <?> "variable-identifier"
 
-funIdent :: PC m => P m (FunIdent ())
+funIdent :: P m => m (FunIdent ())
 funIdent = (FunIdent () . pack)
   <$> some ( alphaNum <|> oneOf "_-" )
   <?> "function-identifier"
 
-cmdIdent :: PC m => P m (CmdIdent ())
+cmdIdent :: P m => m (CmdIdent ())
 cmdIdent = (CmdIdent () . pack)
   <$> noTermString
         ( some $ alphaNum <|> oneOf "/_-" )

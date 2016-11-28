@@ -9,7 +9,7 @@ import Data.Functor
 import Control.Applicative
 import Control.Monad
 
-glob :: PC m => P m Glob
+glob :: P m => m Glob
 glob = qmark <|> star <?> "glob-pattern"
   where
     qmark = char '?' $> QMarkGl

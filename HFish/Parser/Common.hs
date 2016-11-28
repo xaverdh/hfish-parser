@@ -16,15 +16,12 @@ import Control.Monad
 import Control.Monad.Reader
 import Control.Lens hiding (Context)
 
--- | A Monad Transformer which gives access to the parser 'Context'.
-type P = ReaderT Context
-
 -- | The parsing \"Monad\". We use /ConstraintKinds/ instead of
 --   a concrete Monad 
 --
 --   to keep the code polymorphic over the 
 --   parsing framework ("Parsec","Trifecta" etc.).
-type PC m = 
+type P m = 
   ( Functor m
     ,Applicative m
     ,Alternative m
@@ -34,31 +31,6 @@ type PC m =
     ,CharParsing m
     ,TokenParsing m
     ,LookAheadParsing m )
-
--- | The parser 'Context':
---
---   * '_array' is toggled by entering an array index expression [..]
-data Context = Context {
-    _array :: Bool
-  }
-makeLenses ''Context
-
--- | The starting 'Context'.
-defaultContext = Context False
-
--- | Run a parser in a given 'Context'.
-runpInContext :: PC m => Context -> P m a -> m a
-runpInContext ctxt p = (p <* eof) `runReaderT` ctxt
-
--- | Run a parser in the 'defaultContext'.
-runp :: PC m => P m a -> m a
-runp p = (p <* eof) `runReaderT` defaultContext
-
--- | Toggle a 'Context' switch ON.
-withContext l = local (l .~ True)
-
--- | Toggle a 'Context' switch OFF.
-resetContext l = local (l .~ False)
 
 -- | We define our own pack function, so the underlying type
 --   for string data is easily changed.
@@ -70,41 +42,41 @@ instance IsString CharSet where
 
 -- | An alias, such that the underlying implementation
 --   can be switched between 'CharSet' and plain 'noneOf'.
-noneOf' :: PC m => CharSet -> P m Char
+noneOf' :: P m => CharSet -> m Char
 noneOf' = noneOfSet
 
 -- | An alias, such that the underlying implementation
 --   can be switched between 'CharSet' and plain 'oneOf'.
-oneOf' :: PC m => CharSet -> P m Char
+oneOf' :: P m => CharSet -> m Char
 oneOf' = oneOfSet
 
 -- | The space parser, accepts all space (as in 'Data.Char.isSpace'),
 --   except for the newline character.
-space :: PC m => P m Char
+space :: P m => m Char
 space = 
   try (char '\\' *> char '\n')
   <|> satisfy ((&&) <$> C.isSpace <*> (/= '\n'))
   <?> "space-char"
 
 -- | Skip any number of 'space' occurances.
-spaces :: PC m => P m ()
+spaces :: P m => m ()
 spaces = skipMany space <?> "space"
 
 -- | Like 'spaces', but fail unless
 --   at least one space character was consumed.
-spaces1 :: PC m => P m ()
+spaces1 :: P m => m ()
 spaces1 = skipSome space <?> "space"
 
 -- | Turn a parser into a lexeme unit, which will not consume any
 --   input on failure 
 --
 --   and swallow trailing white space on success.
-lexeme :: PC m => P m a -> P m a
+lexeme :: P m => m a -> m a
 lexeme p = try p <* spaces
 
 -- | Same as 'lexeme' but only succeed if at least one
 --   trailing white space was consumed.
-lexeme1 :: PC m => P m a -> P m a
+lexeme1 :: P m => m a -> m a
 lexeme1 p = try (p <* spaces1)
 
 -- | Same as 'lexeme' but only succeed if either:
@@ -112,28 +84,28 @@ lexeme1 p = try (p <* spaces1)
 --   * at least one trailing white space was consumed
 --   * the next character is of a special class, considered
 -- /terminating/ characters. Currently these are \\n ; ) | > \^ \< #
-lexemeN :: PC m => P m a -> P m a
+lexemeN :: P m => m a -> m a
 lexemeN p = try (p <* (spaces1 <|> (void . lookAhead) sep))
   where
     sep = oneOf' "\n;)|>^<#"
 
 -- | Turn a string into a 'lexeme' parser, parsing that string
 --   and returning ()
-sym :: PC m => String -> P m ()
+sym :: P m => String -> m ()
 sym = lexeme . void . string
 
 -- | Turn a string into a 'lexeme1' parser, parsing that string
 --   and returning ()
-sym1 :: PC m => String -> P m ()
+sym1 :: P m => String -> m ()
 sym1 = lexeme1 . void . string
 
 -- | Turn a string into a 'lexemeN' parser, parsing that string
 --   and returning ()
-symN :: PC m => String -> P m ()
+symN :: P m => String -> m ()
 symN = lexemeN . void . string
 
 -- | Skip over a number of statement seperators.
-stmtSep :: PC m => P m ()
+stmtSep :: P m => m ()
 stmtSep =
   skipMany (seps1 <* spaces)
   <?> "statement seperator"
@@ -143,7 +115,7 @@ stmtSep =
 
 -- | Like 'stmtSep', but make sure at least one
 --   newline / semicolon was consumed.
-stmtSep1 :: PC m => P m ()
+stmtSep1 :: P m => m ()
 stmtSep1 =
   skipSome (seps1 <* spaces)
   <|> (void . lookAhead) (char '#' <?> "comment")
@@ -153,6 +125,6 @@ stmtSep1 =
     seps1 = skipSome sep
 
 -- | Parser one of two alternatives, return an Either.
-parseEither :: PC m => P m a -> P m b -> P m (Either a b)
+parseEither :: P m => m a -> m b -> m (Either a b)
 parseEither p1 p2 = (Left <$> p1) <|> (Right <$> p2)
 

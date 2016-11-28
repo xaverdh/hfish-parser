@@ -9,13 +9,13 @@ import Text.Parser.Char hiding (space,spaces)
 import Data.Maybe (catMaybes)
 import Control.Applicative
 
-strGen :: PC m 
-  => P m Char
-  -> P m Char
-  -> P m Char
-  -> P m Char
+strGen :: P m 
+  => m Char
+  -> m Char
+  -> m Char
+  -> m Char
   -> Bool
-  -> P m String
+  -> m String
 
 strGen allowed escPass escSwallow escIgnore allowEmpty =
   catMaybes <$> (if allowEmpty then many else some) charGen
