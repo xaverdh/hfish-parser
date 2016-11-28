@@ -178,13 +178,10 @@ notSt = sym1 "not"
 
 expr :: PC m => P m (Expr ())
 expr = do
-  q <- view quoted
-  s <- if q then exprSimpleQ else exprSimple
+  s <- exprSimple
   option s (ConcatE () s <$> expr)
   <?> "expression"
   where
-    exprSimpleQ = intE <|> varRefE
-    
     exprSimple = strlike
       <|> resetContext array
         ( choice [
@@ -195,14 +192,10 @@ expr = do
             ,homeDirE
             ,procE ] )
 
-    intE = (StringE () . pack)
-      <$> some (digit <|> char '-' <|> char '+')
-      <?> "integer"
-
 varRefE :: PC m => P m (Expr ())
-varRefE = VarRefE ()
-  <$> view quoted
-  <*> varRef
+varRefE =
+  ( VarRefE () False <$> varRef False )
+  <|> ( VarRefE () True <$> varRef True )
   <?> "variable-reference"
 
 bracesE :: PC m => P m (Expr ())
@@ -257,14 +250,14 @@ cmdRef =
     start = sym "(" <?> "command-substitution"
     end = char ')' <?> "end of command-substitution"
 
-varRef :: PC m => P m (VarRef ())
-varRef = VarRef ()
+varRef :: PC m => Bool -> P m (VarRef ())
+varRef q = VarRef ()
   <$> name
   <*> ref expr
   <?> "variable-reference"
   where
-    name = char '$' *> 
-      parseEither varRef varIdent
+    name = char (if q then '&' else '$') *> 
+      parseEither (varRef q) varIdent
 
 varDef :: PC m => P m (VarDef ())
 varDef = VarDef ()
@@ -282,11 +275,10 @@ strlike =
   <?> "string"
 
 strSQ :: PC m => P m (Expr ())
-strSQ = (StringE () . pack) <$> (
-    start *>
-    strGen allowed escPass escSwallow escIgnore allowEmpty
-    <* end
-  )
+strSQ = (StringE () . pack)
+  <$> ( start *>
+        strGen allowed escPass escSwallow escIgnore allowEmpty
+        <* end )
   where
     start = char '\''
     end = char '\'' <?> "end of string"
@@ -296,26 +288,18 @@ strSQ = (StringE () . pack) <$> (
     escIgnore = noneOf' "'\\"
     allowEmpty = True
 
-
 strDQ :: PC m => P m (Expr ())
-strDQ = withContext quoted
-  ( start *>
-    option
-      ( StringE () "" )
-      ( foldl1 (ConcatE ()) <$> some (qstrE <|> expr) )
-    <* end )
-  
+strDQ = (StringE () . pack)
+  <$> ( start *>
+        strGen allowed escPass escSwallow escIgnore allowEmpty  
+        <* end )
   where
     start = char '"'
     end = char '"' <?> "end of string"
-
-    qstrE = (StringE () . pack) <$>
-      strGen allowed escPass escSwallow escIgnore allowEmpty
-
-    allowed = noneOf' "\"\\$\n"
-    escPass = oneOf' "\"\\$"
+    allowed = noneOf' "\"\\\n"
+    escPass = oneOf' "\"\\"
     escSwallow = char '\n'
-    escIgnore = noneOf' "\n\"\\$"
+    escIgnore = noneOf' "\n\"\\"
     allowEmpty = False
 
 strNQ :: PC m => P m (Expr ())
@@ -325,7 +309,7 @@ strNQ = do
     <$> strGen (allowed ar) escPass escSwallow escIgnore allowEmpty
   where
     invalid ar = 
-      "\n\t $\\*?~%#(){}[]<>^&;,\"\'|012" <> bool "" "." ar
+      "\n\t $&\\*?~%#(){}[]<>^;,\"\'|012" <> bool "" "." ar
     allowed ar =
       noneOf' (invalid ar)
       <|> try ( oneOf' "012" <* notFollowedBy (oneOf' "><") )

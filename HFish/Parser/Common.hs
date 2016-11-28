@@ -37,16 +37,14 @@ type PC m =
 
 -- | The parser 'Context':
 --
---   * '_quoted' is toggled by entering a double quote type string,
 --   * '_array' is toggled by entering an array index expression [..]
 data Context = Context {
-    _quoted :: Bool
-    ,_array :: Bool
+    _array :: Bool
   }
 makeLenses ''Context
 
 -- | The starting 'Context'.
-defaultContext = Context False False
+defaultContext = Context False
 
 -- | Run a parser in a given 'Context'.
 runpInContext :: PC m => Context -> P m a -> m a
