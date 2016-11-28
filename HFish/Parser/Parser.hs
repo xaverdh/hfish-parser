@@ -248,10 +248,10 @@ ref q = withContext array $
       option (Index i) ( Range i <$> (sym ".." *> q) )
 
 cmdRef :: PC m => P m (CmdRef ())
-cmdRef = withContext cmdSubst
-  ( CmdRef ()
-    <$> body
-    <*> ref expr )
+cmdRef = 
+  CmdRef ()
+  <$> body
+  <*> ref expr
   where
     body = start *> prog <* end
     start = sym "(" <?> "command-substitution"
