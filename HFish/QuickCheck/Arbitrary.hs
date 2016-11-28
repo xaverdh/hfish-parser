@@ -1,8 +1,8 @@
 {-# language LambdaCase #-}
-module Fish.QuickCheck.Arbitrary where
+module HFish.QuickCheck.Arbitrary where
 
 import Test.QuickCheck hiding (Args)
-import Fish.Lang.Lang
+import HFish.Lang.Lang
 import qualified Data.Text as T
 import qualified Data.Char as C
 

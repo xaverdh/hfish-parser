@@ -1,11 +1,11 @@
 {-# language LambdaCase, TupleSections, OverloadedStrings #-}
-module Fish.Parser.Parser where
+module HFish.Parser.Parser where
 
-import qualified Fish.Parser.Redirect as Redirect
-import Fish.Parser.Common
-import Fish.Parser.Gen
-import Fish.Parser.Glob
-import Fish.Lang.Lang
+import qualified HFish.Parser.Redirect as Redirect
+import HFish.Parser.Common
+import HFish.Parser.Gen
+import HFish.Parser.Glob
+import HFish.Lang.Lang
 
 import Text.Parser.Combinators
 import Text.Parser.LookAhead

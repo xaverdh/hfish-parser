@@ -1,5 +1,5 @@
 {-# language OverloadedStrings, TemplateHaskell, GeneralizedNewtypeDeriving, ConstraintKinds, Rank2Types #-}
-module Fish.Parser.Common where
+module HFish.Parser.Common where
 
 import Text.Parser.Combinators
 import Text.Parser.Token
@@ -46,7 +46,7 @@ data Context = Context {
 makeLenses ''Context
 
 -- | The starting 'Context'.
-defaultContext = Context False False False
+defaultContext = Context False False
 
 -- | Run a parser in a given 'Context'.
 runpInContext :: PC m => Context -> P m a -> m a

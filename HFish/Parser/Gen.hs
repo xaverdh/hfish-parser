@@ -1,7 +1,7 @@
 {-# language RankNTypes #-}
-module Fish.Parser.Gen where
+module HFish.Parser.Gen where
 
-import Fish.Parser.Common
+import HFish.Parser.Common
 
 import Text.Parser.Combinators
 import Text.Parser.LookAhead

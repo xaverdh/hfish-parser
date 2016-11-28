@@ -1,7 +1,7 @@
-module Fish.Parser.Attoparsec where
+module HFish.Parser.Attoparsec where
 
-import qualified Fish.Parser.Parser as P
-import Fish.Lang.Lang
+import qualified HFish.Parser.Parser as P
+import HFish.Lang.Lang
 import Data.Attoparsec.Text
 
 program :: Parser (Prog ())

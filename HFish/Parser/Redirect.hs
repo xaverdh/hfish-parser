@@ -1,8 +1,8 @@
 {-# language LambdaCase, TupleSections #-}
-module Fish.Parser.Redirect where
+module HFish.Parser.Redirect where
 
-import Fish.Parser.Common
-import Fish.Lang.Lang
+import HFish.Parser.Common
+import HFish.Lang.Lang
 
 import Text.Parser.Combinators
 import Text.Parser.Char hiding (space,spaces)

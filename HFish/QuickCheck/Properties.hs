@@ -1,15 +1,15 @@
 {-# language OverloadedStrings #-}
-module Fish.QuickCheck.Properties where
+module HFish.QuickCheck.Properties where
 
-import Fish.Lang.Lang
+import HFish.Lang.Lang
 
-import Fish.Parser.Parser
-import Fish.Parser.Common
-import Fish.Parser.Glob
+import HFish.Parser.Parser
+import HFish.Parser.Common
+import HFish.Parser.Glob
 
-import Fish.UnParser.UnParser
+import HFish.UnParser.UnParser
 
-import Fish.QuickCheck.Arbitrary
+import HFish.QuickCheck.Arbitrary
 
 import Data.Monoid
 import Data.Attoparsec.Text

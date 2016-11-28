@@ -1,7 +1,7 @@
-module Fish.Parser.ReadP where
+module HFish.Parser.ReadP where
 
-import qualified Fish.Parser.Parser as P
-import Fish.Lang.Lang
+import qualified HFish.Parser.Parser as P
+import HFish.Lang.Lang
 import Text.ParserCombinators.ReadP
 
 program :: ReadP (Prog ())
