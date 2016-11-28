@@ -1,5 +1,5 @@
 {-# language OverloadedStrings, LambdaCase #-}
-module Fish.UnParser.Quote (
+module HFish.UnParser.Quote (
   quoteSQ
   ,quoteDQ
   ,quoteNQ

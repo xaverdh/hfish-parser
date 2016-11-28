@@ -1,12 +1,12 @@
 {-# language LambdaCase, OverloadedStrings #-}
-module Fish.UnParser.UnParser where
+module HFish.UnParser.UnParser where
 
 import Data.Monoid
 import Data.String (fromString)
 import qualified Data.List.NonEmpty as N
 import Control.Applicative
-import Fish.Lang.Lang
-import Fish.UnParser.Quote
+import HFish.Lang.Lang
+import HFish.UnParser.Quote
 
 quote = quoteSQ
 
