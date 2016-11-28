@@ -10,8 +10,8 @@ import HFish.UnParser.Quote
 
 quote = quoteSQ
 
-mintCal :: Monoid m => m -> [m] -> m
-mintCal s = \case
+mintcal :: Monoid m => m -> [m] -> m
+mintcal s = \case
   [] -> mempty
   xs -> foldr1 (\x y -> x <> s <> y) xs
 
@@ -24,7 +24,7 @@ instance Unparse (Prog t) where
 
 instance Unparse (Args t) where
   unparse (Args _ es) = 
-    mintCal " " (map unparse es)
+    mintcal " " (map unparse es)
 
 instance Unparse (CompStmt t) where
   unparse = \case
@@ -105,7 +105,7 @@ unparseForSt vari args prog =
 
 unparseIfSt :: N.NonEmpty (Stmt t,Prog t) -> Maybe (Prog t) -> S
 unparseIfSt clauses mfinal =
-  mintCal ("\n" <> "else" <> " ")
+  mintcal ("\n" <> "else" <> " ")
     (map unparseClause $ N.toList clauses)
   <> maybe "" unparseFinal mfinal
   <> "\n" <> "end"
@@ -120,7 +120,7 @@ unparseIfSt clauses mfinal =
 unparseSwitchSt :: Expr t -> N.NonEmpty (Expr t,Prog t) -> S
 unparseSwitchSt e cases =
   "switch" <> " " <> unparse e <> "\n"
-  <> mintCal "\n" (map unparseCase $ N.toList cases)
+  <> mintcal "\n" (map unparseCase $ N.toList cases)
   <> "\n" <> "end"
   where
     unparseCase (e,prog) =
@@ -148,7 +148,7 @@ unparseNotSt st =
 unparseRedirectedSt :: Stmt t -> N.NonEmpty (Redirect t) -> S
 unparseRedirectedSt st redirs =
   unparse st <> " "
-  <> mintCal " " (map unparse $ N.toList redirs)
+  <> mintcal " " (map unparse $ N.toList redirs)
 
 
 instance Unparse (Expr t) where
@@ -157,17 +157,14 @@ instance Unparse (Expr t) where
     GlobE _ g -> unparse g
     ProcE _ e -> "%" <> unparse e
     HomeDirE _ -> "~"
-    VarRefE _ q vref -> 
-      if q 
-        then "\"" <> unparse vref <> "\""
-        else unparse vref
-    BracesE _ es -> "{" <> mintCal "," (map unparse es) <> "}"
+    VarRefE _ q vref -> unparseVarRef q vref
+    BracesE _ es -> "{" <> mintcal "," (map unparse es) <> "}"
     CmdSubstE _ cref -> unparse cref
     ConcatE _ e1 e2 -> unparse e1 <> unparse e2
 
 instance Unparse (CmdRef t) where
   unparse (CmdRef _ (Prog _ sts) ref) = 
-    "(" <> mintCal " ; " (map unparse sts) <> ")"
+    "(" <> mintcal " ; " (map unparse sts) <> ")"
     <> unparseRef ref
 
 instance Unparse (VarDef t) where
@@ -175,15 +172,15 @@ instance Unparse (VarDef t) where
     unparse name
     <> unparseRef ref
 
-instance Unparse (VarRef t) where
-  unparse (VarRef _ name ref) = 
-    "$" <>
-    either unparse unparse name
-    <> unparseRef ref
+unparseVarRef :: Bool -> VarRef t -> S
+unparseVarRef q (VarRef _ name ref) = 
+  (if q then "&" else "$") <>
+  either (unparseVarRef q) unparse name
+  <> unparseRef ref
 
 unparseRef :: Unparse i => Ref i -> S
 unparseRef = bracket
-  . maybe "1..-1" (mintCal " " . map unparse)
+  . maybe "1..-1" (mintcal " " . map unparse)
   where
     bracket t = "[" <> t <> "]"
 
@@ -240,5 +237,6 @@ unparseFdR fd =
   "&" <>
   (fromString . show)
     (fromEnum fd)
+
 
 

@@ -18,11 +18,11 @@ import Test.QuickCheck hiding (Args)
 attoParse p = parseOnly (p <* endOfInput)
 
 parseUnparse p x = 
-  attoParse (runp p) (unparse x)
+  attoParse p (unparse x)
   == Right x
 
 parseUnparse' p x = 
-  attoParse (runp p) (unparse x <> " ")
+  attoParse p (unparse x <> " ")
   == Right x
 
 checkParseUnparse = do
@@ -33,6 +33,7 @@ checkParseUnparse = do
   quickCheck prop_parse_unparse_varIdent
   quickCheck prop_parse_unparse_funIdent
   quickCheck prop_parse_unparse_cmdIdent
+  -- quickCheck prop_parse_unparse_program
 
 prop_parse_unparse_glob :: Glob -> Bool
 prop_parse_unparse_glob =
@@ -49,5 +50,9 @@ prop_parse_unparse_funIdent =
 prop_parse_unparse_cmdIdent :: CmdIdent () -> Bool
 prop_parse_unparse_cmdIdent =
   parseUnparse cmdIdent
+
+prop_parse_unparse_program :: Prog () -> Bool
+prop_parse_unparse_program =
+  parseUnparse program
 
 

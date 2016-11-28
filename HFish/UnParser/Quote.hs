@@ -18,7 +18,7 @@ quoteSQ s =
 quoteDQ :: Int -> T.Text -> T.Text
 quoteDQ n s =
   "\"" <>
-  (wrap n . q ['$','"','\\']) s
+  (wrap n . q ['"','\\']) s
   <> "\""
 
 quoteNQ :: Int -> T.Text -> T.Text
