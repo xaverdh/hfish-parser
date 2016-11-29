@@ -251,7 +251,7 @@ cmdRef =
 
 varRef :: P m => Bool -> m (VarRef ())
 varRef q = VarRef ()
-  <$> name
+  <$> try name
   <*> ref expr
   <?> "variable-reference"
   where
