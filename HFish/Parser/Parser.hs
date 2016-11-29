@@ -299,7 +299,7 @@ strDQ = (StringE () . pack)
     escPass = oneOf' "\"\\"
     escSwallow = char '\n'
     escIgnore = noneOf' "\n\"\\"
-    allowEmpty = False
+    allowEmpty = True
 
 strNQ :: P m => m (Expr ())
 strNQ = do
