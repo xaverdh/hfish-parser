@@ -99,11 +99,17 @@ cmdSt = CmdSt ()
   <?> "command-statement"
 
 setSt :: P m => m (Stmt ())
-setSt = symN "set" *>
+setSt = symN "set" *> 
   ( SetSt ()
-    <$> optional
-    ( (,) <$> lexemeN varDef <*> args ) )
+    <$> optional ( body <|> prefix ) )
   <?> "variable-definition"
+  where
+    prefix = do
+      e <- expr <* spaces1
+      (Args _ pres,vdef,args) <- body
+      return (Args () $ e:pres,vdef,args)
+    
+    body = (Args () [],,) <$> try ( lexemeN varDef ) <*> args
 
 funSt :: P m => m (Stmt ())
 funSt = sym1 "function" *> (
