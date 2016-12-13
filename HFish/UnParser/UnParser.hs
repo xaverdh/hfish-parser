@@ -84,9 +84,12 @@ unparseCmdSt cmdi args =
   unparseSp cmdi
   <> unparse args
 
+instance Unparse t => Unparse (SetCommand t) where
+  unparse = unparseSetSt
+
 unparseSetSt :: SetCommand t -> S
 unparseSetSt = (("set" <> " ") <>) . \case
-  SetSetting mscope mexport vdef args -> 
+  SetSetting mscope mexport vdef args ->
     unparseMScope mscope
     <> unparseMExport mexport
     <> unparseSp vdef
@@ -97,12 +100,12 @@ unparseSetSt = (("set" <> " ") <>) . \case
   SetQuery mscope mexport args ->
     "-q" <> " "
     <> unparseMScope mscope
-    <> unparseMExport mexport 
+    <> unparseMExport mexport
     <> unparse args
-  SetErase mscope mexport idents -> 
+  SetErase mscope mexport idents ->
     "-e" <> " "
     <> unparseMScope mscope
-    <> unparseMExport mexport 
+    <> unparseMExport mexport
     <> (unWords . map unparse . N.toList) idents
   where
     unparseMScope = maybe "" unparseSp

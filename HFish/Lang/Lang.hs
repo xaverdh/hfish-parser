@@ -85,7 +85,7 @@ data SetCommand t =
   -- ^ The /set/ builtin command in query mode
   | SetErase (Maybe Scope) (Maybe Export) (N.NonEmpty (VarIdent t))
   -- ^ The /set/ builtin command in erase mode
-  deriving (Eq,Ord,Show,Functor)  
+  deriving (Eq,Ord,Show,Functor)
 
 -- | Export flag.
 data Export = Export | UnExport
