@@ -7,6 +7,7 @@ import HFish.Parser.Gen
 import HFish.Parser.Glob
 import HFish.Lang.Lang
 
+import Text.Parser.Permutation
 import Text.Parser.Combinators
 import Text.Parser.LookAhead
 import Text.Parser.Char hiding (space,spaces)
@@ -100,18 +101,52 @@ cmdSt = CmdSt ()
 
 setSt :: P m => m (Stmt ())
 setSt = symN "set" *> 
-  ( SetSt ()
-    <$> optional body )
-  <?> "variable-definition"
+  ( SetSt () <$> setCommand )
+  <?> "set-statement"
+
+data SetMode = Erase | Query | Setting
+
+setCommand :: P m => m (SetCommand ())
+setCommand = try setSQE <|> setList
   where
-    body = post <|> pre
+    setList = SetList
+      <$> option Nothing (Just <$> scope)
+      <*> option False (flag True "n" "names")
     
-    pre = do
-      e <- expr <* spaces1
-      (Args _ pres,vdef,args) <- body
-      return (Args () $ e:pres,vdef,args)
+    setSQE = do
+      (fmode,mscp,fexport) <- permute
+        ( (,,)
+          <$?> (Setting,mode)
+          <|?> (Nothing,Just <$> scope)
+          <|?> (Nothing,Just <$> export) )
+      case fmode of
+        Setting ->
+          SetSetting mscp fexport
+          <$> lexemeN varDef
+          <*> args
+        Erase ->
+          SetErase mscp fexport . N.fromList
+          <$> (some $ lexemeN varIdent)
+        Query ->
+          SetQuery mscp fexport
+          <$> args
     
-    post = (Args () [],,) <$> try ( lexemeN varDef ) <*> args
+    scope = choice 
+      [ flag ScopeLocal "l" "local"
+       ,flag ScopeGlobal "g" "global"
+       ,flag ScopeUniversal "U" "universal" ]
+    
+    export = choice
+      [ flag Export "x" "export"
+       ,flag UnExport "u" "unexport" ]
+    
+    mode = choice
+      [ flag Erase "e" "erase"
+       ,flag Query "q" "query" ]
+    
+    flag value short long = 
+      ( symN ("-" <> short)
+        <|> symN ("--" <> long) ) $> value
 
 funSt :: P m => m (Stmt ())
 funSt = sym1 "function" *> (
