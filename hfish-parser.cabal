@@ -28,10 +28,10 @@ flag ReadP
   Default:     False
 
 library
-  exposed-modules:     HFish.Lang.Lang, HFish.UnParser.Quote HFish.UnParser.UnParser HFish.Parser.Redirect, HFish.Parser.Common, HFish.Parser.Glob, HFish.Parser.Parser, HFish.Parser.Gen
+  exposed-modules:     HFish.UnParser.Quote HFish.UnParser.UnParser HFish.Parser.Redirect, HFish.Parser.Common, HFish.Parser.Glob, HFish.Parser.Parser, HFish.Parser.Gen
   -- other-modules:       
   -- other-extensions:    many ... todo: fill this in
-  build-depends:       base >=4.9 && <4.10, mtl >=2.2.1 && <2.3, parsers >= 0.12.4 && < 0.13, text >= 1.2.2 && < 1.3, charset >= 0.3.7 && < 0.4, lens >= 4.15.1 && < 4.16
+  build-depends:       base >=4.9 && <4.10, mtl >=2.2.1 && <2.3, parsers >= 0.12.4 && < 0.13, text >= 1.2.2 && < 1.3, charset >= 0.3.7 && < 0.4, lens >= 4.15.1 && < 4.16, fish-lang >= 0.1.0 && < 0.2
   if flag(trifecta)
     exposed-modules: HFish.Parser.Trifecta
     build-depends: trifecta >= 1.6 && < 1.7
