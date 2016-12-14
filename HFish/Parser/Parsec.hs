@@ -2,7 +2,7 @@
 module HFish.Parser.Parsec where
 
 import qualified HFish.Parser.Parser as P
-import HFish.Lang.Lang
+import Fish.Lang
 import Text.Parsec
 import Data.Functor.Identity
 

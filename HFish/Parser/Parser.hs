@@ -5,7 +5,7 @@ import qualified HFish.Parser.Redirect as Redirect
 import HFish.Parser.Common
 import HFish.Parser.Gen
 import HFish.Parser.Glob
-import HFish.Lang.Lang
+import Fish.Lang
 
 import Text.Parser.Permutation
 import Text.Parser.Combinators

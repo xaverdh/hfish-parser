@@ -2,7 +2,7 @@ module HFish.Parser.Trifecta where
 
 import qualified HFish.Parser.Parser as P
 import qualified HFish.Parser.Common as C
-import HFish.Lang.Lang
+import Fish.Lang
 import Text.Trifecta.Parser
 
 program :: Parser (Prog ())

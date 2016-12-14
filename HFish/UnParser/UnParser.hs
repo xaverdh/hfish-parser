@@ -5,7 +5,7 @@ import Data.Monoid
 import Data.String (fromString)
 import qualified Data.List.NonEmpty as N
 import Control.Applicative
-import HFish.Lang.Lang
+import Fish.Lang
 import HFish.UnParser.Quote
 
 quote = quoteSQ

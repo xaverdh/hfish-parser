@@ -1,7 +1,7 @@
 module HFish.Parser.Glob where
 
 import HFish.Parser.Common
-import HFish.Lang.Lang
+import Fish.Lang
 
 import Text.Parser.Combinators
 import Text.Parser.Char hiding (space,spaces)
