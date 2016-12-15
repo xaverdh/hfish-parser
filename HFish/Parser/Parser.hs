@@ -1,4 +1,4 @@
-{-# language LambdaCase, TupleSections, OverloadedStrings #-}
+{-# language LambdaCase, TupleSections, OverloadedStrings, FlexibleContexts #-}
 module HFish.Parser.Parser where
 
 import qualified HFish.Parser.Redirect as Redirect
@@ -19,7 +19,8 @@ import qualified Data.Text as T
 import qualified Data.List.NonEmpty as N
 import Control.Applicative
 import Control.Monad
-import Control.Monad.Reader
+-- import Control.Monad.Reader
+import Control.Monad.State
 import Control.Lens hiding (Context,noneOf)
 
 program :: P m => m (Prog ())
@@ -113,6 +114,7 @@ setCommand = try setSQE <|> setList
       <$?> (Nothing,Just <$> scope)
       <|?> (Nothing,Just <$> export)
       <|?> (False,flag True "n" "names") )
+      `evalStateT` False
     
     setSQE = do
       (fmode,mscp,fexport) <- permute
@@ -120,6 +122,7 @@ setCommand = try setSQE <|> setList
           <$?> (Setting,mode)
           <|?> (Nothing,Just <$> scope)
           <|?> (Nothing,Just <$> export) )
+        `evalStateT` False
       case fmode of
         Setting ->
           SetSetting mscp fexport
@@ -143,9 +146,15 @@ setCommand = try setSQE <|> setList
       [ flag Erase "e" "erase"
        ,flag Query "q" "query" ]
     
-    flag value short long = 
-      ( symN ("-" <> short)
-        <|> symN ("--" <> long) ) $> value
+    flag value short long =
+      get >>= \case
+        True -> value <$
+          ( symN short <* put False
+            <|> (void . string) short )
+        False -> value <$
+          ( symN ("-" <> short)
+            <|> (try . void . string) ("-" <> short) <* put True
+            <|> symN ("--" <> long) )
 
 funSt :: P m => m (Stmt ())
 funSt = sym1 "function" *> (

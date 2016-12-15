@@ -79,15 +79,19 @@ lexeme p = try p <* spaces
 lexeme1 :: P m => m a -> m a
 lexeme1 p = try (p <* spaces1)
 
+-- | Succeeds if the next character is of a special class,
+--   considered /terminating/ characters.
+--
+--   Currently these are \\n ;  ) | > \^ \< #
+terminated :: P m => m ()
+terminated = void . lookAhead $ oneOf' "\n;)|>^<#"
+
 -- | Same as 'lexeme' but only succeed if either:
 --
 --   * at least one trailing white space was consumed
---   * the next character is of a special class, considered
--- /terminating/ characters. Currently these are \\n ; ) | > \^ \< #
+--   * the next character is successfully parsed by 'terminated'.
 lexemeN :: P m => m a -> m a
-lexemeN p = try (p <* (spaces1 <|> (void . lookAhead) sep))
-  where
-    sep = oneOf' "\n;)|>^<#"
+lexemeN p = try (p <* (spaces1 <|> terminated))
 
 -- | Turn a string into a 'lexeme' parser, parsing that string
 --   and returning ()
@@ -127,4 +131,5 @@ stmtSep1 =
 -- | Parser one of two alternatives, return an Either.
 parseEither :: P m => m a -> m b -> m (Either a b)
 parseEither p1 p2 = (Left <$> p1) <|> (Right <$> p2)
+
 
