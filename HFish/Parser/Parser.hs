@@ -19,7 +19,6 @@ import qualified Data.Text as T
 import qualified Data.List.NonEmpty as N
 import Control.Applicative
 import Control.Monad
--- import Control.Monad.Reader
 import Control.Monad.State
 import Control.Lens hiding (Context,noneOf)
 
