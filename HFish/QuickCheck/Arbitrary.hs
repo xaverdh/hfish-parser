@@ -3,24 +3,25 @@ module HFish.QuickCheck.Arbitrary where
 
 import Test.QuickCheck hiding (Args)
 import Fish.Lang
+import Data.NText
 import qualified Data.Text as T
 import qualified Data.Char as C
 
-genVarIdent = T.pack
+genVarIdent = mkNText . T.pack
   <$> ( listOf1
         ( arbitrary `suchThat` f)
         `suchThat` ( C.isLetter . head ) )
   where
     f c = C.isAlphaNum c || (=='_') c
 
-genFunIdent = T.pack
+genFunIdent = mkNText . T.pack
   <$> ( listOf1
         ( arbitrary `suchThat` C.isAlphaNum )
         `suchThat` ( C.isLetter . head ) )
   where
     f c = C.isAlphaNum c || (=='_') c || (=='-') c
 
-genCmdIdent = T.pack
+genCmdIdent = mkNText . T.pack
   <$> ( listOf1
         ( arbitrary `suchThat` C.isAlphaNum )
         `suchThat` ( C.isLetter . head ) )
@@ -130,4 +131,5 @@ instance Arbitrary t => Arbitrary (VarDef T.Text t) where
 instance Arbitrary t => Arbitrary (CmdRef T.Text t) where
   arbitrary = scale (`div`2) 
     (CmdRef <$> arbitrary <*> arbitrary <*> arbitrary)
+
 
