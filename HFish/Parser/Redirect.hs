@@ -12,7 +12,7 @@ import qualified Data.Text as T
 import Control.Applicative
 import Control.Monad
 
-redirect :: P m => m (Expr T.Text t) -> m (Redirect T.Text t)
+redirect :: P m => m e -> m (Redirect e)
 redirect exp = do
   (fd,tk) <- redirectL
   redirectR exp fd tk
@@ -28,7 +28,7 @@ redirectL = try $ do
     TkErr _ -> maybe (return Fd2) (const mzero) mfd
 
 redirectR :: P m
-  => m (Expr T.Text t) -> Fd -> RedirTk -> m (Redirect T.Text t)
+  => m e -> Fd -> RedirTk -> m (Redirect e)
 redirectR exp fd tk = 
   parseEither fdR (spaces *> exp) >>= \case
     Left mfdr -> case mfdr of
