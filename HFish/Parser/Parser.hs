@@ -243,8 +243,7 @@ expr = do
         ,cmdSubstE
         ,bracesE
         ,globE
-        ,homeDirE
-        ,procE ]
+        ,homeDirE ]
 
 varRefE :: P m => m (Expr T.Text ())
 varRefE =
@@ -270,11 +269,6 @@ globE :: P m => m (Expr T.Text ())
 globE = GlobE ()
   <$> glob
   <?> "glob-pattern"
-
-procE :: P m => m (Expr T.Text ())
-procE = ProcE ()
-  <$> (char '%' *> expr)
-  <?> "process-expansion"
 
 homeDirE :: P m => m (Expr T.Text ())
 homeDirE = char '~' $> HomeDirE () <?> "~"
