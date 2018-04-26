@@ -9,11 +9,10 @@ import Data.Functor
 import Control.Applicative
 import Control.Monad
 
-glob :: P m => m Glob
-glob = qmark <|> star <?> "glob-pattern"
+glob :: P p m => m Glob
+glob = stars <?> "glob-pattern"
   where
-    qmark = char '?' $> QMarkGl
-    star =
+    stars =
       char '*'
       *> option StarGl (char '*' $> DiStarGl)
 
