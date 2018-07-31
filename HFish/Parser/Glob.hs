@@ -9,7 +9,7 @@ import Data.Functor
 import Control.Applicative
 import Control.Monad
 
-glob :: P p m => m Glob
+glob :: P m => m Glob
 glob = stars <?> "glob-pattern"
   where
     stars =
