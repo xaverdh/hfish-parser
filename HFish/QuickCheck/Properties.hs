@@ -14,7 +14,7 @@ import HFish.QuickCheck.Arbitrary
 import Data.Semigroup
 import qualified Data.Text as T
 import Data.Attoparsec.Text
-import Test.QuickCheck hiding (Args)
+import Test.QuickCheck
 
 attoParse p = parseOnly (p <* endOfInput)
 
