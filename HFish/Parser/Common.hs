@@ -14,7 +14,6 @@ import Data.CharSet
 import Control.Applicative
 import Control.Monad
 import Control.Monad.Reader
-import Control.Lens hiding (Context)
 
 -- | The parsing \"Monad\". We use /ConstraintKinds/ instead of
 --   a concrete Monad 

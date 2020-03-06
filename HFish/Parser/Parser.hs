@@ -23,7 +23,6 @@ import qualified Data.List.NonEmpty as N
 import Control.Applicative
 import Control.Monad
 import Control.Monad.State
-import Control.Lens hiding (Context,noneOf)
 
 program :: P m => m (Prog T.Text ())
 program = prog <* eof
